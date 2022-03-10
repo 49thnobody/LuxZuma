@@ -55,7 +55,10 @@ public class BallController : MonoBehaviour
 
     private void OnCollisionEnter2D(Collision2D collision)
     {
-        if (_state == BallState.Moving) return;
+        if (_state != BallState.OnRoad) return;
+
+        if (_collider.tag == "GameOver")
+            ;//gameover
 
         var collisionBall = collision.gameObject.GetComponent<BallController>();
         if (collisionBall == null) return;
@@ -66,6 +69,16 @@ public class BallController : MonoBehaviour
             OnMovingBallCollision?.Invoke(this, collisionBall);
     }
 
+    private void OnCollisionExit2D(Collision2D collision)
+    {
+        if (_state != BallState.OnRoad) return;
+
+        var collisionTurn = collision.gameObject.GetComponent<TurnController>();
+        if (collisionTurn == null) return;
+
+        _currentDirection = collisionTurn.NextDirection;
+    }
+
     public void Set(Color color, Sprite sprite)
     {
         _color = color;
@@ -74,11 +87,6 @@ public class BallController : MonoBehaviour
     public void SetState(BallState state)
     {
         _state = state;
-    }
-
-    public void SetDirection(Direction direction)
-    {
-        _currentDirection = direction;
     }
 
     public void SetSpeed(float speed)
