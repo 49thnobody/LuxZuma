@@ -9,11 +9,8 @@ public class PlatformController : MonoBehaviour
     void Awake()
     {
         instance = this;
-
-        _transform = GetComponent<Transform>();
     }
 
-    private Transform _transform;
     private BallController ActiveBall;
 
     private float _speed = 10f;
@@ -25,7 +22,7 @@ public class PlatformController : MonoBehaviour
 
     void Update()
     {
-        Vector3 pos = _transform.position;
+        Vector3 pos = transform.position;
 
         if (Input.GetKey(KeyCode.LeftArrow))
         {
@@ -36,12 +33,14 @@ public class PlatformController : MonoBehaviour
             pos.x += _speed * Time.deltaTime;
         }
 
-        ActiveBall.transform.position = pos;
+        transform.position = pos;
 
         if (Input.GetKey(KeyCode.UpArrow))
         {
             // выпустить мяч
-
+            var movingBall = Instantiate(ActiveBall);
+            movingBall.transform.position = ActiveBall.transform.position;
+            movingBall.SetState(BallState.Moving);
             // заспавнить новый
             ActiveBall = BallSpawner.instance.Spawn();
         }

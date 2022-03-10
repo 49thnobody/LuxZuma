@@ -12,14 +12,15 @@ public class BallSpawner : MonoBehaviour
     }
 
     public BallController BallPrefab;
-    public Dictionary<Color, Sprite> BallSprites;
+    public List<Sprite> BallSprites;
 
     public Transform SpawningPorition;
     public BallController Spawn()
     {
         var newBall = Instantiate(BallPrefab, SpawningPorition);
-        Color color = (Color)Random.Range(0, BallSprites.Count - 1);
-        newBall.Set(color, BallSprites[color]);
+        int color = Random.Range(0, BallSprites.Count - 1);
+        newBall.Set((Color)color, BallSprites[color]);
+        newBall.SetState(BallState.Active);
 
         return newBall;
     }
