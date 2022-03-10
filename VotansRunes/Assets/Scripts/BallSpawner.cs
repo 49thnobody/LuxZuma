@@ -17,6 +17,10 @@ public class BallSpawner : MonoBehaviour
     public Transform SpawningPorition;
     public BallController Spawn()
     {
-       return Instantiate(BallPrefab, SpawningPorition);
+        var newBall = Instantiate(BallPrefab, SpawningPorition);
+        Color color = (Color)Random.Range(0, BallSprites.Count - 1);
+        newBall.Set(color, BallSprites[color]);
+
+        return newBall;
     }
 }
