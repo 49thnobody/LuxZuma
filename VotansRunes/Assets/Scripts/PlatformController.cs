@@ -35,14 +35,19 @@ public class PlatformController : MonoBehaviour
 
         transform.position = pos;
 
-        if (Input.GetKey(KeyCode.UpArrow))
+        if (Input.GetKeyDown(KeyCode.UpArrow))
         {
-            // выпустить мяч
-            var movingBall = Instantiate(ActiveBall);
-            movingBall.transform.position = ActiveBall.transform.position;
-            movingBall.SetState(BallState.Moving);
-            // заспавнить новый
-            ActiveBall = BallSpawner.instance.Spawn();
+            PushBall();
         }
+    }
+
+    private void PushBall()
+    {
+        // выпустить мяч
+        var movingBall = Instantiate(ActiveBall);
+        movingBall.transform.position = ActiveBall.transform.position;
+        movingBall.SetState(BallState.Moving);
+        // заспавнить новый
+        ActiveBall = BallSpawner.instance.Spawn();
     }
 }

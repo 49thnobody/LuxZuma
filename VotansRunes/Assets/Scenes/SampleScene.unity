@@ -123,51 +123,6 @@ NavMeshSettings:
     debug:
       m_Flags: 0
   m_NavMeshData: {fileID: 0}
---- !u!1 &35292425
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 35292427}
-  - component: {fileID: 35292426}
-  m_Layer: 0
-  m_Name: BallSpamner
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!114 &35292426
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 35292425}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: f993b10375fcaf944b4fde5b4e91ec19, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  BallPrefab: {fileID: 8342866855660346184, guid: ff5f62ae8ca2a124684ff04c2d031b95, type: 3}
-  SpawningPorition: {fileID: 155629150}
---- !u!4 &35292427
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 35292425}
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_Children: []
-  m_Father: {fileID: 0}
-  m_RootOrder: 3
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &155629149
 GameObject:
   m_ObjectHideFlags: 0
@@ -514,5 +469,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f993b10375fcaf944b4fde5b4e91ec19, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  BallPrefab: {fileID: 0}
-  SpawningPorition: {fileID: 0}
+  BallPrefab: {fileID: 8342866855660346184, guid: ff5f62ae8ca2a124684ff04c2d031b95, type: 3}
+  BallSprites:
+  - {fileID: 21300000, guid: d9f0c523cc024974fb5620d309b3bb54, type: 3}
+  - {fileID: 21300000, guid: cf35119f7b53e1c419bb1c7cb3af6dda, type: 3}
+  - {fileID: 21300000, guid: fd2b5a6b515861c4f980ebd7b7fdaad0, type: 3}
+  - {fileID: 21300000, guid: c4797b928419e844aaef5d3f039aa7f3, type: 3}
+  - {fileID: 21300000, guid: 793ffa612b1b3de4996b7ebac0393def, type: 3}
+  - {fileID: 21300000, guid: 1652f2efa5721a446892d51b273576dc, type: 3}
+  SpawningPorition: {fileID: 155629150}
