@@ -22,3 +22,10 @@ public enum BallState
     Moving,
     OnRoad
 }
+
+public enum Direction
+{
+    Left,
+    Rigth,
+    Bottom
+}

@@ -32,11 +32,6 @@ public class BallController : MonoBehaviour
         }
     }
 
-    private void OnCollisionExit(Collision collision)
-    {
-        
-    }
-
     public void SetState(BallState state)
     {
         _state = state;
