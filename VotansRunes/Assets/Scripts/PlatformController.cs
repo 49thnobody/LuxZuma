@@ -17,7 +17,7 @@ public class PlatformController : MonoBehaviour
 
     private void Start()
     {
-        ActiveBall = BallSpawner.instance.Spawn();
+        ActiveBall = BallSpawner.instance.SpawnOnPlatform();
     }
 
     void Update()
@@ -48,6 +48,6 @@ public class PlatformController : MonoBehaviour
         movingBall.transform.position = ActiveBall.transform.position;
         movingBall.SetState(BallState.Moving);
         // заспавнить новый
-        ActiveBall = BallSpawner.instance.Spawn();
+        ActiveBall = BallSpawner.instance.SpawnOnPlatform();
     }
 }

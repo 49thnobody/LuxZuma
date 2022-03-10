@@ -2,10 +2,10 @@
 {
     White,
     Yellow,
-    LightBlue,
     Red,
     Green,
-    Blue
+    Blue,
+    Pink
 }
 
 public enum GameState
@@ -20,5 +20,5 @@ public enum BallState
 {
     Active,
     Moving,
-    AtRoad
+    OnRoad
 }
