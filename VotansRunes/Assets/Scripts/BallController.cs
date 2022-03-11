@@ -1,28 +1,45 @@
-﻿using System.Collections;
+﻿using System.Collections.Generic;
 using UnityEngine;
 
 
 public class BallController : MonoBehaviour
 {
     private CircleCollider2D _collider;
+    private Rigidbody2D _body2D;
     private SpriteRenderer _sprite;
     private Color _color;
     private BallState _state;
     private float _speed = 12f;
 
-    private Direction _currentDirection;
-
     public delegate void BallCollision(BallController ballOnRoad, BallController movingBall);
     public event BallCollision OnMovingBallCollision;
     public event BallCollision OnRoadBallCollision;
 
-    void Awake()
+    private PathContoller Path;
+
+    private List<Transform> _pathPoints;
+    private int nextPoint = 0;
+
+    private void Awake()
     {
         _sprite = GetComponentInChildren<SpriteRenderer>();
         _collider = GetComponentInChildren<CircleCollider2D>();
+        _body2D = GetComponentInChildren<Rigidbody2D>();
     }
 
-    void Update()
+    private void Start()
+    {
+        if (_state == BallState.Active) _collider.enabled = false;
+
+        if (_state != BallState.OnRoad) return;
+        Path = FindObjectOfType<RoadController>().gameObject.GetComponent<PathContoller>(); // i hate this line, realy
+
+        _pathPoints = Path.Elements;
+
+        transform.position = _pathPoints[nextPoint].position;
+    }
+
+    private void Update()
     {
         if (_state == BallState.Moving)
         {
@@ -32,33 +49,42 @@ public class BallController : MonoBehaviour
         }
         if (_state == BallState.OnRoad)
         {
-            Vector3 pos = transform.position;
+            if (_pathPoints == null) return;
+            transform.position = Vector3.MoveTowards(transform.position, _pathPoints[nextPoint].position, Time.deltaTime * _speed);
 
-            switch (_currentDirection)
+            var distanceSquare = (transform.position - _pathPoints[nextPoint].position).sqrMagnitude;
+
+            if (distanceSquare < 0.1f * 0.1f)
             {
-                case Direction.Left:
-                    pos.x -= _speed * Time.deltaTime;
-                    break;
-                case Direction.Rigth:
-                    pos.x += _speed * Time.deltaTime;
-                    break;
-                case Direction.Bottom:
-                    pos.y -= _speed * Time.deltaTime;
-                    break;
-                default:
-                    break;
+                if (nextPoint == _pathPoints.Count - 1)
+                    return; // actually lost
+
+                nextPoint++;
             }
 
-            transform.position = pos;
+            if (nextPoint < _pathPoints.Count - 1)
+            {
+                if (_pathPoints[nextPoint].position.y == _pathPoints[nextPoint + 1].position.y) // not down
+                {
+                    transform.position = new Vector3(transform.position.x, _pathPoints[nextPoint].position.y); // выравнивание по y
+                }
+                else // down
+                {
+                    transform.position = new Vector3(_pathPoints[nextPoint].position.x, transform.position.y); // выравнивание по х
+                }
+            }
+            else
+            {
+                transform.position = new Vector3(transform.position.x, _pathPoints[_pathPoints.Count - 1].position.y); // выравнивание по х 
+            }
         }
     }
 
     private void OnCollisionEnter2D(Collision2D collision)
     {
-        if (_state != BallState.OnRoad) return;
+        Debug.Log("Collided!");
 
-        if (_collider.tag == "GameOver")
-            ;//gameover
+        if (_state != BallState.OnRoad) return;
 
         var collisionBall = collision.gameObject.GetComponent<BallController>();
         if (collisionBall == null) return;
@@ -69,16 +95,6 @@ public class BallController : MonoBehaviour
             OnMovingBallCollision?.Invoke(this, collisionBall);
     }
 
-    private void OnCollisionExit2D(Collision2D collision)
-    {
-        if (_state != BallState.OnRoad) return;
-
-        var collisionTurn = collision.gameObject.GetComponent<TurnController>();
-        if (collisionTurn == null) return;
-
-        _currentDirection = collisionTurn.NextDirection;
-    }
-
     public void Set(Color color, Sprite sprite)
     {
         _color = color;
@@ -87,6 +103,9 @@ public class BallController : MonoBehaviour
     public void SetState(BallState state)
     {
         _state = state;
+
+        if (state != BallState.Active)
+            _collider.enabled = true;
     }
 
     public void SetSpeed(float speed)

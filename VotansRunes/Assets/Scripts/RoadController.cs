@@ -24,13 +24,19 @@ public class RoadController : MonoBehaviour
     {
         _ballsOnRoad = new LinkedList<BallController>();
 
+        StartCoroutine(SpawnBalls());
+    }
 
+    private IEnumerator SpawnBalls()
+    {
         for (int i = 0; i < 25; i++)
         {
             _ballsOnRoad.AddLast(BallSpawner.instance.SpawnOnRoad());
             _ballsOnRoad.Last.Value.SetSpeed(1f);
             _ballsOnRoad.Last.Value.OnMovingBallCollision += OnMovingBallCollision;
-            _ballsOnRoad.Last.Value.OnRoadBallCollision += OnRoadBallCollision; ;
+            _ballsOnRoad.Last.Value.OnRoadBallCollision += OnRoadBallCollision;
+
+            yield return new WaitForSeconds(0.2f);
         }
     }
 
@@ -62,5 +68,8 @@ public class RoadController : MonoBehaviour
         {
             
         }
+
+        // если рядом есть 3 шара одного цвета - уничтожить их
+
     }
 }

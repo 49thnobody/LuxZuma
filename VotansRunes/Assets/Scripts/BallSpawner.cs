@@ -14,10 +14,10 @@ public class BallSpawner : MonoBehaviour
     public BallController BallPrefab;
     public List<Sprite> BallSprites;
 
-    public Transform PlatformPorition;
+    public Transform PlatformPosition;
     public BallController SpawnOnPlatform()
     {
-        return SpawnOnPlace(PlatformPorition, BallState.Active);
+        return SpawnOnPlace(PlatformPosition, BallState.Active);
     }
 
     public Transform RoadSpawnPosition;
