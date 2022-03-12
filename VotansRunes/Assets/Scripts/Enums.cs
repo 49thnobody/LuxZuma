@@ -20,5 +20,5 @@ public enum BallState
 {
     Active,
     Moving,
-    OnRoad
+    Road
 }

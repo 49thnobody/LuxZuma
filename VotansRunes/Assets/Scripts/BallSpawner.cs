@@ -20,10 +20,26 @@ public class BallSpawner : MonoBehaviour
         return SpawnOnPlace(PlatformPosition, BallState.Active);
     }
 
+    public void SpawnMoving(BallController template)
+    {
+        var movingBall = Instantiate(BallPrefab, PlatformPosition);
+        movingBall.Set(template);
+        movingBall.SetState(BallState.Moving);
+    }
+
+    public BallController GenerateNewBall()
+    {
+        int color = Random.Range(0, BallSprites.Count - 1);
+        BallPrefab.Set((Color)color, BallSprites[color]);
+        BallPrefab.SetState(BallState.Active);
+
+        return BallPrefab;
+    }
+
     public Transform RoadSpawnPosition;
     public BallController SpawnOnRoad()
     {
-        return SpawnOnPlace(RoadSpawnPosition, BallState.OnRoad);
+        return SpawnOnPlace(RoadSpawnPosition, BallState.Road);
     }
 
     private BallController SpawnOnPlace(Transform parent, BallState ballState)

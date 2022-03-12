@@ -7,21 +7,22 @@ public class RoadController : MonoBehaviour
 {
     public static RoadController instance;
 
-    public List<BoxCollider2D> Turns;
-    private LinkedList<BallController> _ballsOnRoad;
-
-    private float _baseSpeed = 3f;
-    private float _speedOnStart = 15f;
-
-    private float _ballSize = 0.7f;
-
     private void Awake()
     {
         instance = this;
     }
 
+    private LinkedList<BallController> _ballsOnRoad;
+
+    private float _baseSpeed = 1f;
+
+    private float _ballSize = 0.7f;
+
+    private PathContoller _path;
+
     private void Start()
     {
+        _path = GetComponent<PathContoller>();
         _ballsOnRoad = new LinkedList<BallController>();
 
         StartCoroutine(SpawnBalls());
@@ -34,42 +35,75 @@ public class RoadController : MonoBehaviour
             _ballsOnRoad.AddLast(BallSpawner.instance.SpawnOnRoad());
             _ballsOnRoad.Last.Value.SetSpeed(1f);
             _ballsOnRoad.Last.Value.OnMovingBallCollision += OnMovingBallCollision;
-            _ballsOnRoad.Last.Value.OnRoadBallCollision += OnRoadBallCollision;
 
             yield return new WaitForSeconds(0.2f);
         }
     }
 
-    private void OnRoadBallCollision(BallController ballOnRoad, BallController movingBall)
+    private void OnMovingBallCollision(BallController roadBall, BallController movingBall)
     {
-        ReplaceBalls();
-    }
+        var ballInList = _ballsOnRoad.Find(roadBall);
 
-    private void OnMovingBallCollision(BallController ballOnRoad, BallController movingBall)
-    {
-        var ballInList = _ballsOnRoad.Find(ballOnRoad);
-
-        if (ballInList != null) return;
+        if (ballInList == null) return;
 
         // определить впихнуть до или после
+        var rbPos = roadBall.transform.position;
+        var mbPos = movingBall.transform.position;
 
-        // впихнуть
+        var leftPos = rbPos.x - _ballSize;
+        var rightPos = rbPos.x + _ballSize;
 
-        // передвинуть
-        ReplaceBalls();
-    }
+        var leftPosDif = Mathf.Abs(leftPos) - Mathf.Abs(mbPos.x);
+        var rightPosDif = Mathf.Abs(rightPos) - Mathf.Abs(mbPos.x);
 
-    private void ReplaceBalls()
-    {
-        // план: от последнего элемента к первому передвинуть шары друг к другу
-        var currentNode = _ballsOnRoad.Last;
-
-        for (int i = 0; i < _ballsOnRoad.Count - 1; i++)
+        if (leftPosDif < rightPosDif)
         {
-            
+            movingBall.transform.position = new Vector3(leftPos, rbPos.y, 0f);
+            _ballsOnRoad.AddBefore(ballInList, movingBall);
+        }
+        else
+        {
+            movingBall.transform.position = new Vector3(rightPos, rbPos.y, 0f);
+            _ballsOnRoad.AddAfter(ballInList, movingBall);
         }
 
-        // если рядом есть 3 шара одного цвета - уничтожить их
+        movingBall.SetState(BallState.Road);
+        // впихнуть
 
+        // чек если рядом есть 3 шарика одного цвета
+        CheckForMatches(movingBall);
+    }
+
+    private void CheckForMatches(BallController movingBall)
+    {
+        var ballInList = _ballsOnRoad.Find(movingBall);
+
+        if (ballInList == null) return;
+
+        var firstBallInChain = ballInList;
+
+        while (firstBallInChain.Previous != null && firstBallInChain.Previous.Value.Color == ballInList.Value.Color)
+        {
+            firstBallInChain = firstBallInChain.Previous;
+        }
+
+        List<BallController> ballsInChain = new List<BallController>();
+
+        var currentNode = firstBallInChain;
+
+        do
+        {
+            ballsInChain.Add(currentNode.Value);
+            currentNode = currentNode.Next;
+        } while (currentNode != null && currentNode.Value.Color == firstBallInChain.Value.Color);
+
+        if (ballsInChain.Count < 4) return;
+
+        // увеличить счет за количество шаров в цепочке
+
+        foreach (var ball in ballsInChain)
+        {
+            Destroy(ball);
+        }
     }
 }

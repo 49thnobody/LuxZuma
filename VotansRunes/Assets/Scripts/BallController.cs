@@ -6,14 +6,13 @@ public class BallController : MonoBehaviour
 {
     private CircleCollider2D _collider;
     private Rigidbody2D _body2D;
-    private SpriteRenderer _sprite;
-    private Color _color;
+    public SpriteRenderer Sprite;
+    public Color Color;
     private BallState _state;
     private float _speed = 12f;
 
     public delegate void BallCollision(BallController ballOnRoad, BallController movingBall);
     public event BallCollision OnMovingBallCollision;
-    public event BallCollision OnRoadBallCollision;
 
     private PathContoller Path;
 
@@ -22,7 +21,7 @@ public class BallController : MonoBehaviour
 
     private void Awake()
     {
-        _sprite = GetComponentInChildren<SpriteRenderer>();
+        Sprite = GetComponentInChildren<SpriteRenderer>();
         _collider = GetComponentInChildren<CircleCollider2D>();
         _body2D = GetComponentInChildren<Rigidbody2D>();
     }
@@ -31,7 +30,7 @@ public class BallController : MonoBehaviour
     {
         if (_state == BallState.Active) _collider.enabled = false;
 
-        if (_state != BallState.OnRoad) return;
+        if (_state != BallState.Road) return;
         Path = FindObjectOfType<RoadController>().gameObject.GetComponent<PathContoller>(); // i hate this line, realy
 
         _pathPoints = Path.Elements;
@@ -47,7 +46,7 @@ public class BallController : MonoBehaviour
             pos.y += _speed * Time.deltaTime;
             transform.position = pos;
         }
-        if (_state == BallState.OnRoad)
+        if (_state == BallState.Road)
         {
             if (_pathPoints == null) return;
             transform.position = Vector3.MoveTowards(transform.position, _pathPoints[nextPoint].position, Time.deltaTime * _speed);
@@ -66,46 +65,51 @@ public class BallController : MonoBehaviour
             {
                 if (_pathPoints[nextPoint].position.y == _pathPoints[nextPoint + 1].position.y) // not down
                 {
-                    transform.position = new Vector3(transform.position.x, _pathPoints[nextPoint].position.y); // выравнивание по y
+                    _body2D.constraints = RigidbodyConstraints2D.FreezePositionX;
                 }
                 else // down
                 {
-                    transform.position = new Vector3(_pathPoints[nextPoint].position.x, transform.position.y); // выравнивание по х
+                    _body2D.constraints = RigidbodyConstraints2D.FreezePositionY;
                 }
             }
             else
             {
-                transform.position = new Vector3(transform.position.x, _pathPoints[_pathPoints.Count - 1].position.y); // выравнивание по х 
+                _body2D.constraints = RigidbodyConstraints2D.FreezePositionY;
             }
         }
     }
 
     private void OnCollisionEnter2D(Collision2D collision)
     {
-        Debug.Log("Collided!");
-
-        if (_state != BallState.OnRoad) return;
+        if (_state != BallState.Road) return;
 
         var collisionBall = collision.gameObject.GetComponent<BallController>();
         if (collisionBall == null) return;
 
-        if (collisionBall._state == BallState.OnRoad)
-            OnRoadBallCollision?.Invoke(this, collisionBall);
-        else if (collisionBall._state == BallState.Moving)
+        if (collisionBall._state == BallState.Moving)
             OnMovingBallCollision?.Invoke(this, collisionBall);
     }
 
     public void Set(Color color, Sprite sprite)
     {
-        _color = color;
-        _sprite.sprite = sprite;
+        Color = color;
+        Sprite.sprite = sprite;
     }
+
+    public void Set(BallController ball)
+    {
+        Color = ball.Color;
+        Sprite.sprite = ball.Sprite.sprite;
+    }
+
     public void SetState(BallState state)
     {
         _state = state;
 
         if (state != BallState.Active)
             _collider.enabled = true;
+        else
+            _collider.enabled = false;
     }
 
     public void SetSpeed(float speed)

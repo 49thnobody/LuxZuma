@@ -11,13 +11,13 @@ public class PlatformController : MonoBehaviour
         instance = this;
     }
 
-    private BallController ActiveBall;
+    private BallController _activeBall;
 
     private float _speed = 10f;
 
     private void Start()
     {
-        ActiveBall = BallSpawner.instance.SpawnOnPlatform();
+        _activeBall = BallSpawner.instance.SpawnOnPlatform();
     }
 
     void Update()
@@ -44,10 +44,9 @@ public class PlatformController : MonoBehaviour
     private void PushBall()
     {
         // выпустить мяч
-        var movingBall = Instantiate(ActiveBall);
-        movingBall.transform.position = ActiveBall.transform.position;
-        movingBall.SetState(BallState.Moving);
+        BallSpawner.instance.SpawnMoving(_activeBall);
+        DestroyImmediate(_activeBall.gameObject);
         // заспавнить новый
-        ActiveBall = BallSpawner.instance.SpawnOnPlatform();
+        _activeBall = BallSpawner.instance.SpawnOnPlatform();
     }
 }
