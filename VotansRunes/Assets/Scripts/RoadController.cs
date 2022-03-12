@@ -33,7 +33,7 @@ public class RoadController : MonoBehaviour
         for (int i = 0; i < 25; i++)
         {
             _ballsOnRoad.AddLast(BallSpawner.instance.SpawnOnRoad());
-            _ballsOnRoad.Last.Value.SetSpeed(1f);
+            _ballsOnRoad.Last.Value.SetSpeed(_baseSpeed);
             _ballsOnRoad.Last.Value.OnMovingBallCollision += OnMovingBallCollision;
 
             yield return new WaitForSeconds(0.2f);
@@ -56,8 +56,10 @@ public class RoadController : MonoBehaviour
         var leftPosDif = Mathf.Abs(leftPos) - Mathf.Abs(mbPos.x);
         var rightPosDif = Mathf.Abs(rightPos) - Mathf.Abs(mbPos.x);
 
+        movingBall.transform.SetParent(roadBall.transform.parent);
         if (leftPosDif < rightPosDif)
         {
+
             movingBall.transform.position = new Vector3(leftPos, rbPos.y, 0f);
             _ballsOnRoad.AddBefore(ballInList, movingBall);
         }
@@ -68,6 +70,8 @@ public class RoadController : MonoBehaviour
         }
 
         movingBall.SetState(BallState.Road);
+        movingBall.SetSpeed(_baseSpeed);
+        movingBall.NextPoint = roadBall.NextPoint;
         // впихнуть
 
         // чек если рядом есть 3 шарика одного цвета
@@ -105,5 +109,7 @@ public class RoadController : MonoBehaviour
         {
             Destroy(ball);
         }
+
+        // убрать дыру между шарами
     }
 }

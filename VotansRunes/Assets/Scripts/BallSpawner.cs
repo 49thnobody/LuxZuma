@@ -22,18 +22,10 @@ public class BallSpawner : MonoBehaviour
 
     public void SpawnMoving(BallController template)
     {
-        var movingBall = Instantiate(BallPrefab, PlatformPosition);
+        var movingBall = Instantiate(BallPrefab);
+        movingBall.transform.position = PlatformPosition.position;
         movingBall.Set(template);
         movingBall.SetState(BallState.Moving);
-    }
-
-    public BallController GenerateNewBall()
-    {
-        int color = Random.Range(0, BallSprites.Count - 1);
-        BallPrefab.Set((Color)color, BallSprites[color]);
-        BallPrefab.SetState(BallState.Active);
-
-        return BallPrefab;
     }
 
     public Transform RoadSpawnPosition;

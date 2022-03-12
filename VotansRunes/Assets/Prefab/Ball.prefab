@@ -128,7 +128,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 84a9e92c326faa04a99451cdbd2d1a5c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  Sprite: {fileID: 3698953141588558787}
   Color: 0
 --- !u!58 &3112076334738879813
 CircleCollider2D:

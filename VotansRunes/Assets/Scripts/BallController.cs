@@ -6,7 +6,7 @@ public class BallController : MonoBehaviour
 {
     private CircleCollider2D _collider;
     private Rigidbody2D _body2D;
-    public SpriteRenderer Sprite;
+    private SpriteRenderer _sprite;
     public Color Color;
     private BallState _state;
     private float _speed = 12f;
@@ -17,11 +17,11 @@ public class BallController : MonoBehaviour
     private PathContoller Path;
 
     private List<Transform> _pathPoints;
-    private int nextPoint = 0;
+    public int NextPoint = 0;
 
     private void Awake()
     {
-        Sprite = GetComponentInChildren<SpriteRenderer>();
+        _sprite = GetComponentInChildren<SpriteRenderer>();
         _collider = GetComponentInChildren<CircleCollider2D>();
         _body2D = GetComponentInChildren<Rigidbody2D>();
     }
@@ -30,12 +30,13 @@ public class BallController : MonoBehaviour
     {
         if (_state == BallState.Active) _collider.enabled = false;
 
-        if (_state != BallState.Road) return;
+
         Path = FindObjectOfType<RoadController>().gameObject.GetComponent<PathContoller>(); // i hate this line, realy
 
         _pathPoints = Path.Elements;
 
-        transform.position = _pathPoints[nextPoint].position;
+        if (_state == BallState.Road)
+            transform.position = _pathPoints[NextPoint].position;
     }
 
     private void Update()
@@ -45,25 +46,27 @@ public class BallController : MonoBehaviour
             Vector3 pos = transform.position;
             pos.y += _speed * Time.deltaTime;
             transform.position = pos;
+
+            if (pos.y > 6) Destroy(gameObject);
         }
         if (_state == BallState.Road)
         {
             if (_pathPoints == null) return;
-            transform.position = Vector3.MoveTowards(transform.position, _pathPoints[nextPoint].position, Time.deltaTime * _speed);
+            transform.position = Vector3.MoveTowards(transform.position, _pathPoints[NextPoint].position, Time.deltaTime * _speed);
 
-            var distanceSquare = (transform.position - _pathPoints[nextPoint].position).sqrMagnitude;
+            var distanceSquare = (transform.position - _pathPoints[NextPoint].position).sqrMagnitude;
 
             if (distanceSquare < 0.1f * 0.1f)
             {
-                if (nextPoint == _pathPoints.Count - 1)
+                if (NextPoint == _pathPoints.Count - 1)
                     return; // actually lost
 
-                nextPoint++;
+                NextPoint++;
             }
 
-            if (nextPoint < _pathPoints.Count - 1)
+            if (NextPoint < _pathPoints.Count - 1)
             {
-                if (_pathPoints[nextPoint].position.y == _pathPoints[nextPoint + 1].position.y) // not down
+                if (_pathPoints[NextPoint].position.y == _pathPoints[NextPoint + 1].position.y) // not down
                 {
                     _body2D.constraints = RigidbodyConstraints2D.FreezePositionX;
                 }
@@ -93,13 +96,13 @@ public class BallController : MonoBehaviour
     public void Set(Color color, Sprite sprite)
     {
         Color = color;
-        Sprite.sprite = sprite;
+        _sprite.sprite = sprite;
     }
 
     public void Set(BallController ball)
     {
         Color = ball.Color;
-        Sprite.sprite = ball.Sprite.sprite;
+        _sprite.sprite = ball._sprite.sprite;
     }
 
     public void SetState(BallState state)
