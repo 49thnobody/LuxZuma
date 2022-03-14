@@ -34,7 +34,7 @@ public class RoadController : MonoBehaviour
             _ballsOnRoad.Last.Value.OnMovingBallCollision += OnMovingBallCollision;
             _ballsOnRoad.Last.Value.OnRoadBallCollision += OnRoadBallCollision;
 
-            yield return new WaitForSeconds(0.3f);
+            yield return new WaitForSeconds(0.2f);
         }
     }
 
@@ -112,7 +112,7 @@ public class RoadController : MonoBehaviour
         movingBall.NextPoint = roadBall.NextPoint;
 
         // чек если рядом есть 3 шарика одного цвета
-        CheckForMatches(_ballsOnRoad.Find(movingBall).Value);
+        CheckForMatches(movingBall);
     }
 
     private void CheckForMatches(BallController movingBall)

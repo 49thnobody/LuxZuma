@@ -12,7 +12,6 @@ public class BallController : MonoBehaviour
     public Color Color;
     private BallState _state;
     private float _speed = 12f;
-    private Vector3 _velocity;
 
     public delegate void BallCollision(BallController ballOnRoad, BallController otherBall);
     public event BallCollision OnMovingBallCollision;
@@ -57,7 +56,7 @@ public class BallController : MonoBehaviour
         {
             if (_pathPoints == null) return;
 
-            transform.position = Vector3.MoveTowards(transform.position, _pathPoints[NextPoint].position + _velocity, Time.deltaTime * _speed);
+            transform.position = Vector3.MoveTowards(transform.position, _pathPoints[NextPoint].position, Time.deltaTime * _speed);
 
             var distanceSquare = (transform.position - _pathPoints[NextPoint].position).sqrMagnitude;
 
@@ -99,11 +98,6 @@ public class BallController : MonoBehaviour
 
         if (collisionBall._state == BallState.Road)
             OnRoadBallCollision?.Invoke(this, collisionBall);
-    }
-
-    private void OnCollisionExit2D(Collision2D collision)
-    {
-        _velocity = Vector3.zero;
     }
 
     public Direction MovingTo
@@ -155,5 +149,10 @@ public class BallController : MonoBehaviour
     public void SetPosition(Vector3 position)
     {
         transform.position = position;
+    }
+
+    public void Push()
+    {
+        _speed += 0.5f;
     }
 }
