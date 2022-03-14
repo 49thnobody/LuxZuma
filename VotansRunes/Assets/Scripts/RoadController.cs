@@ -14,8 +14,6 @@ public class RoadController : MonoBehaviour
 
     private LinkedList<BallController> _ballsOnRoad;
 
-    private float _baseSpeed = 1f;
-
     private float _ballSize = 0.7f;
 
     private PathContoller _path;
@@ -33,18 +31,27 @@ public class RoadController : MonoBehaviour
         for (int i = 0; i < 25; i++)
         {
             _ballsOnRoad.AddLast(BallSpawner.instance.SpawnOnRoad());
-            _ballsOnRoad.Last.Value.SetSpeed(_baseSpeed);
             _ballsOnRoad.Last.Value.OnMovingBallCollision += OnMovingBallCollision;
             _ballsOnRoad.Last.Value.OnRoadBallCollision += OnRoadBallCollision;
 
-            yield return new WaitForSeconds(0.2f);
+            yield return new WaitForSeconds(0.3f);
         }
     }
 
-    private void OnRoadBallCollision(BallController ballOnRoad, BallController movingBall)
+    private void OnRoadBallCollision(BallController roadBall1, BallController roadBall2)
     {
-       // Vector3 pushDir = new Vector3(hit.moveDirection.x, 0, hit.moveDirection.z);
-       // body.velocity = pushDir * pushPower;
+        var ball1InList = _ballsOnRoad.Find(roadBall1);
+        var ball2InList = _ballsOnRoad.Find(roadBall2);
+
+        if (ball1InList == null || ball2InList == null)
+            return;
+
+        if (ball1InList.Previous == ball2InList)
+        {
+            // помен€ть их местами чтобы было легче понимать код дальше
+            // первый м€ч должен идти перед вторым, а не наоборот
+            ball1InList = ball2InList;
+        }
     }
 
     private void OnMovingBallCollision(BallController roadBall, BallController movingBall)
@@ -54,9 +61,6 @@ public class RoadController : MonoBehaviour
         if (ballInList == null) return;
 
         PlaceOnRoad(roadBall, movingBall, ballInList);
-
-        // чек если р€дом есть 3 шарика одного цвета
-        CheckForMatches(movingBall);
     }
 
     private void PlaceOnRoad(BallController roadBall, BallController movingBall, LinkedListNode<BallController> ballInList)
@@ -65,8 +69,8 @@ public class RoadController : MonoBehaviour
         var rbPos = roadBall.transform.position;
         var mbPos = movingBall.transform.position;
 
-        var prevPos = ballInList.Previous.Value.transform.position;
-        var nextPos = ballInList.Next.Value.transform.position;
+        var prevPos = ballInList.Previous == null ? ballInList.Value.transform.position : ballInList.Previous.Value.transform.position;
+        var nextPos = ballInList.Next == null ? ballInList.Value.transform.position : ballInList.Next.Value.transform.position;
 
         var prevDistanceSquare = (prevPos - mbPos).sqrMagnitude;
         var nextDistanceSquare = (nextPos - mbPos).sqrMagnitude;
@@ -105,12 +109,15 @@ public class RoadController : MonoBehaviour
 
         movingBall.transform.position = newPos;
         movingBall.SetState(BallState.Road);
-        movingBall.SetSpeed(_baseSpeed);
         movingBall.NextPoint = roadBall.NextPoint;
+
+        // чек если р€дом есть 3 шарика одного цвета
+        CheckForMatches(_ballsOnRoad.Find(movingBall).Value);
     }
 
     private void CheckForMatches(BallController movingBall)
     {
+        // always nul dunno why
         var ballInList = _ballsOnRoad.Find(movingBall);
 
         if (ballInList == null) return;

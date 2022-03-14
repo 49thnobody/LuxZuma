@@ -4,14 +4,17 @@ using UnityEngine;
 
 public class BallController : MonoBehaviour
 {
+    private const float _roadSpeed = 1f;
+    private const float _movingSpeed = 12f;
     private CircleCollider2D _collider;
     private Rigidbody2D _body2D;
     private SpriteRenderer _sprite;
     public Color Color;
     private BallState _state;
     private float _speed = 12f;
+    private Vector3 _velocity;
 
-    public delegate void BallCollision(BallController ballOnRoad, BallController movingBall);
+    public delegate void BallCollision(BallController ballOnRoad, BallController otherBall);
     public event BallCollision OnMovingBallCollision;
     public event BallCollision OnRoadBallCollision;
 
@@ -53,7 +56,8 @@ public class BallController : MonoBehaviour
         if (_state == BallState.Road)
         {
             if (_pathPoints == null) return;
-            transform.position = Vector3.MoveTowards(transform.position, _pathPoints[NextPoint].position, Time.deltaTime * _speed);
+
+            transform.position = Vector3.MoveTowards(transform.position, _pathPoints[NextPoint].position + _velocity, Time.deltaTime * _speed);
 
             var distanceSquare = (transform.position - _pathPoints[NextPoint].position).sqrMagnitude;
 
@@ -97,6 +101,11 @@ public class BallController : MonoBehaviour
             OnRoadBallCollision?.Invoke(this, collisionBall);
     }
 
+    private void OnCollisionExit2D(Collision2D collision)
+    {
+        _velocity = Vector3.zero;
+    }
+
     public Direction MovingTo
     {
         get
@@ -125,15 +134,22 @@ public class BallController : MonoBehaviour
     {
         _state = state;
 
-        if (state != BallState.Active)
-            _collider.enabled = true;
-        else
-            _collider.enabled = false;
-    }
-
-    public void SetSpeed(float speed)
-    {
-        _speed = speed;
+        switch (_state)
+        {
+            case BallState.Active:
+                _collider.enabled = false;
+                break;
+            case BallState.Moving:
+                _collider.enabled = true;
+                _speed = _movingSpeed;
+                break;
+            case BallState.Road:
+                _collider.enabled = true;
+                _speed = _roadSpeed;
+                break;
+            default:
+                break;
+        }
     }
 
     public void SetPosition(Vector3 position)
