@@ -144,15 +144,5 @@ public class BallController : MonoBehaviour
             default:
                 break;
         }
-    }
-
-    public void SetPosition(Vector3 position)
-    {
-        transform.position = position;
-    }
-
-    public void Push()
-    {
-        _speed += 0.5f;
-    }
+    } 
 }

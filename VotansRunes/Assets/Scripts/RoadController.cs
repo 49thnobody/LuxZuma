@@ -32,25 +32,8 @@ public class RoadController : MonoBehaviour
         {
             _ballsOnRoad.AddLast(BallSpawner.instance.SpawnOnRoad());
             _ballsOnRoad.Last.Value.OnMovingBallCollision += OnMovingBallCollision;
-            _ballsOnRoad.Last.Value.OnRoadBallCollision += OnRoadBallCollision;
 
             yield return new WaitForSeconds(0.2f);
-        }
-    }
-
-    private void OnRoadBallCollision(BallController roadBall1, BallController roadBall2)
-    {
-        var ball1InList = _ballsOnRoad.Find(roadBall1);
-        var ball2InList = _ballsOnRoad.Find(roadBall2);
-
-        if (ball1InList == null || ball2InList == null)
-            return;
-
-        if (ball1InList.Previous == ball2InList)
-        {
-            // поменять их местами чтобы было легче понимать код дальше
-            // первый мяч должен идти перед вторым, а не наоборот
-            ball1InList = ball2InList;
         }
     }
 
