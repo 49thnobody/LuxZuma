@@ -54,38 +54,23 @@ public class RoadController : MonoBehaviour
 
     private void PlaceOnRoad(BallController roadBall, BallController movingBall, LinkedListNode<BallController> ballInList)
     {
-        // maybe use this to detect closest ball
-        //var distanceSquare = (transform.position - _pathPoints[NextPoint].position).sqrMagnitude;
-
-        //if (distanceSquare < 0.1f * 0.1f)
-        //{
-        //    if (NextPoint == _pathPoints.Count - 1)
-        //        return; // actually lost
-
-        //    NextPoint++;
-        //}
-
-       
-
         // определить впихнуть до или после
         var rbPos = roadBall.transform.position;
         var mbPos = movingBall.transform.position;
 
-        var prevPos = ballInList.Previous.Value.transform.position.x;
-        var nextPos = ballInList.Next.Value.transform.position.x;
+        var prevPos = ballInList.Previous.Value.transform.position;
+        var nextPos = ballInList.Next.Value.transform.position;
 
-       //var prevDistanceSquare = (transform.position - _pathPoints[NextPoint].position).sqrMagnitude;
-       //var nextDistanceSquare = (transform.position - _pathPoints[NextPoint].position).sqrMagnitude;
-
-        var prevPosDif = Mathf.Abs(prevPos) - Mathf.Abs(mbPos.x);
-        var nextPosDif = Mathf.Abs(nextPos) - Mathf.Abs(mbPos.x);
+        var prevDistanceSquare = (prevPos - mbPos).sqrMagnitude;
+        var nextDistanceSquare = (nextPos - mbPos).sqrMagnitude;
 
         movingBall.transform.SetParent(roadBall.transform.parent);
 
         Vector3 newPos = movingBall.transform.position;
-        if (prevPosDif < nextPosDif)
+        // близжайший нод - предыдущий тому, в которого врезались
+        if (prevDistanceSquare < nextDistanceSquare)
         {
-            newPos = new Vector3(prevPos, rbPos.y, 0f);
+            newPos = new Vector3(prevPos.x, rbPos.y, 0f);
 
             // ooooo
             // 01234  
@@ -96,9 +81,10 @@ public class RoadController : MonoBehaviour
             else if (roadBall.MovingTo == Direction.Right)
                 _ballsOnRoad.AddAfter(ballInList, movingBall);
         }
+        // близжайший нод - следующий после того, в которого врезались
         else
         {
-            newPos = new Vector3(nextPos, rbPos.y, 0f);
+            newPos = new Vector3(nextPos.x, rbPos.y, 0f);
 
             // ooooo
             // 01234  
