@@ -35,9 +35,16 @@ public class RoadController : MonoBehaviour
             _ballsOnRoad.AddLast(BallSpawner.instance.SpawnOnRoad());
             _ballsOnRoad.Last.Value.SetSpeed(_baseSpeed);
             _ballsOnRoad.Last.Value.OnMovingBallCollision += OnMovingBallCollision;
+            _ballsOnRoad.Last.Value.OnRoadBallCollision += OnRoadBallCollision;
 
             yield return new WaitForSeconds(0.2f);
         }
+    }
+
+    private void OnRoadBallCollision(BallController ballOnRoad, BallController movingBall)
+    {
+       // Vector3 pushDir = new Vector3(hit.moveDirection.x, 0, hit.moveDirection.z);
+       // body.velocity = pushDir * pushPower;
     }
 
     private void OnMovingBallCollision(BallController roadBall, BallController movingBall)

@@ -13,6 +13,7 @@ public class BallController : MonoBehaviour
 
     public delegate void BallCollision(BallController ballOnRoad, BallController movingBall);
     public event BallCollision OnMovingBallCollision;
+    public event BallCollision OnRoadBallCollision;
 
     private PathContoller Path;
 
@@ -92,11 +93,8 @@ public class BallController : MonoBehaviour
         if (collisionBall._state == BallState.Moving)
             OnMovingBallCollision?.Invoke(this, collisionBall);
 
-        if(collisionBall._state == BallState.Road)
-        {
-            Vector3 pushDir = new Vector3(hit.moveDirection.x, 0, hit.moveDirection.z);
-            body.velocity = pushDir * pushPower;
-        }
+        if (collisionBall._state == BallState.Road)
+            OnRoadBallCollision?.Invoke(this, collisionBall);
     }
 
     public Direction MovingTo
