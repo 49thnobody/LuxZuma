@@ -46,36 +46,74 @@ public class RoadController : MonoBehaviour
 
         if (ballInList == null) return;
 
+        PlaceOnRoad(roadBall, movingBall, ballInList);
+
+        // чек если рядом есть 3 шарика одного цвета
+        CheckForMatches(movingBall);
+    }
+
+    private void PlaceOnRoad(BallController roadBall, BallController movingBall, LinkedListNode<BallController> ballInList)
+    {
+        // maybe use this to detect closest ball
+        //var distanceSquare = (transform.position - _pathPoints[NextPoint].position).sqrMagnitude;
+
+        //if (distanceSquare < 0.1f * 0.1f)
+        //{
+        //    if (NextPoint == _pathPoints.Count - 1)
+        //        return; // actually lost
+
+        //    NextPoint++;
+        //}
+
+       
+
         // определить впихнуть до или после
         var rbPos = roadBall.transform.position;
         var mbPos = movingBall.transform.position;
 
-        var leftPos = rbPos.x - _ballSize;
-        var rightPos = rbPos.x + _ballSize;
+        var prevPos = ballInList.Previous.Value.transform.position.x;
+        var nextPos = ballInList.Next.Value.transform.position.x;
 
-        var leftPosDif = Mathf.Abs(leftPos) - Mathf.Abs(mbPos.x);
-        var rightPosDif = Mathf.Abs(rightPos) - Mathf.Abs(mbPos.x);
+       //var prevDistanceSquare = (transform.position - _pathPoints[NextPoint].position).sqrMagnitude;
+       //var nextDistanceSquare = (transform.position - _pathPoints[NextPoint].position).sqrMagnitude;
+
+        var prevPosDif = Mathf.Abs(prevPos) - Mathf.Abs(mbPos.x);
+        var nextPosDif = Mathf.Abs(nextPos) - Mathf.Abs(mbPos.x);
 
         movingBall.transform.SetParent(roadBall.transform.parent);
-        if (leftPosDif < rightPosDif)
-        {
 
-            movingBall.transform.position = new Vector3(leftPos, rbPos.y, 0f);
-            _ballsOnRoad.AddBefore(ballInList, movingBall);
+        Vector3 newPos = movingBall.transform.position;
+        if (prevPosDif < nextPosDif)
+        {
+            newPos = new Vector3(prevPos, rbPos.y, 0f);
+
+            // ooooo
+            // 01234  
+            if (roadBall.MovingTo == Direction.Left)
+                _ballsOnRoad.AddBefore(ballInList, movingBall);
+            // ooooo
+            // 43210  
+            else if (roadBall.MovingTo == Direction.Right)
+                _ballsOnRoad.AddAfter(ballInList, movingBall);
         }
         else
         {
-            movingBall.transform.position = new Vector3(rightPos, rbPos.y, 0f);
-            _ballsOnRoad.AddAfter(ballInList, movingBall);
+            newPos = new Vector3(nextPos, rbPos.y, 0f);
+
+            // ooooo
+            // 01234  
+            if (roadBall.MovingTo == Direction.Left)
+                _ballsOnRoad.AddAfter(ballInList, movingBall);
+            // ooooo
+            // 43210  
+            else if (roadBall.MovingTo == Direction.Right)
+                _ballsOnRoad.AddBefore(ballInList, movingBall);
         }
 
+        movingBall.transform.position = newPos;
         movingBall.SetState(BallState.Road);
         movingBall.SetSpeed(_baseSpeed);
         movingBall.NextPoint = roadBall.NextPoint;
-        // впихнуть
-
-        // чек если рядом есть 3 шарика одного цвета
-        CheckForMatches(movingBall);
     }
 
     private void CheckForMatches(BallController movingBall)
@@ -105,9 +143,10 @@ public class RoadController : MonoBehaviour
 
         // увеличить счет за количество шаров в цепочке
 
-        foreach (var ball in ballsInChain)
+        for (int i = ballsInChain.Count - 1; i >= 0; i--)
         {
-            Destroy(ball);
+            BallController ball = ballsInChain[i];
+            Destroy(ball.gameObject);
         }
 
         // убрать дыру между шарами

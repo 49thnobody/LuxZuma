@@ -66,13 +66,13 @@ public class BallController : MonoBehaviour
 
             if (NextPoint < _pathPoints.Count - 1)
             {
-                if (_pathPoints[NextPoint].position.y == _pathPoints[NextPoint + 1].position.y) // not down
-                {
-                    _body2D.constraints = RigidbodyConstraints2D.FreezePositionX;
-                }
-                else // down
+                if (MovingTo == Direction.Down) //  down
                 {
                     _body2D.constraints = RigidbodyConstraints2D.FreezePositionY;
+                }
+                else //not down
+                {
+                    _body2D.constraints = RigidbodyConstraints2D.FreezePositionX;
                 }
             }
             else
@@ -91,6 +91,18 @@ public class BallController : MonoBehaviour
 
         if (collisionBall._state == BallState.Moving)
             OnMovingBallCollision?.Invoke(this, collisionBall);
+    }
+
+    public Direction MovingTo
+    {
+        get
+        {
+            if (_pathPoints[NextPoint].position.y != _pathPoints[NextPoint + 1].position.y)
+                return Direction.Down;
+            if (_pathPoints[NextPoint].position.x < _pathPoints[NextPoint + 1].position.x)
+                return Direction.Left;
+            return Direction.Right;
+        }
     }
 
     public void Set(Color color, Sprite sprite)

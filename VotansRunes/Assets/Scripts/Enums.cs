@@ -22,3 +22,10 @@ public enum BallState
     Moving,
     Road
 }
+
+public enum Direction
+{
+    Left,
+    Right,
+    Down
+}
