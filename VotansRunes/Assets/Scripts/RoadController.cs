@@ -32,8 +32,19 @@ public class RoadController : MonoBehaviour
         {
             _ballsOnRoad.AddLast(BallSpawner.instance.SpawnOnRoad());
             _ballsOnRoad.Last.Value.OnMovingBallCollision += OnMovingBallCollision;
+            if (_ballsOnRoad.Last.Previous != null)
+            {
+                _ballsOnRoad.Last.Previous.Value.SetNext(_ballsOnRoad.Last.Value);
+                var currentNode = _ballsOnRoad.Last;
+                while (currentNode.Previous != null)
+                {
+                    currentNode.Previous.Value.transform.position += new Vector3(-0.2f, 0, 0);
+                    currentNode = currentNode.Previous;
+                }
+            }
 
-            yield return new WaitForSeconds(0.2f);
+
+            yield return new WaitForSeconds(0.1f);
         }
     }
 
@@ -69,11 +80,15 @@ public class RoadController : MonoBehaviour
             // ooooo
             // 01234  
             if (roadBall.MovingTo == Direction.Left)
+            {
                 _ballsOnRoad.AddBefore(ballInList, movingBall);
+            }
             // ooooo
             // 43210  
             else if (roadBall.MovingTo == Direction.Right)
+            {
                 _ballsOnRoad.AddAfter(ballInList, movingBall);
+            }
         }
         // близжайший нод - следующий после того, в которого врезались
         else
@@ -90,24 +105,35 @@ public class RoadController : MonoBehaviour
                 _ballsOnRoad.AddBefore(ballInList, movingBall);
         }
 
-        movingBall.transform.position = newPos;
-        movingBall.SetState(BallState.Road);
-        movingBall.NextPoint = roadBall.NextPoint;
+        var mbInList = _ballsOnRoad.Find(movingBall);
+        mbInList.Value.transform.position = newPos;
+        mbInList.Value.SetState(BallState.Road);
+        mbInList.Value.OnMovingBallCollision += OnMovingBallCollision;
+        mbInList.Value.NextPoint = roadBall.NextPoint;
+
+        ResetNExtToMe();
 
         // чек если р€дом есть 3 шарика одного цвета
-        CheckForMatches(movingBall);
+        CheckForMatches(mbInList);
     }
 
-    private void CheckForMatches(BallController movingBall)
+    private void ResetNExtToMe()
     {
-        // always nul dunno why
-        var ballInList = _ballsOnRoad.Find(movingBall);
+        var currentNode = _ballsOnRoad.First;
+        while (currentNode.Next != null)
+        {
+            currentNode.Value.SetNext(currentNode.Next.Value);
+            currentNode = currentNode.Next;
+        }
+    }
 
-        if (ballInList == null) return;
+    private void CheckForMatches(LinkedListNode<BallController> movingBall)
+    {
+        if (movingBall == null) return;
 
-        var firstBallInChain = ballInList;
+        var firstBallInChain = movingBall;
 
-        while (firstBallInChain.Previous != null && firstBallInChain.Previous.Value.Color == ballInList.Value.Color)
+        while (firstBallInChain.Previous != null && firstBallInChain.Previous.Value.Color == movingBall.Value.Color)
         {
             firstBallInChain = firstBallInChain.Previous;
         }
@@ -122,13 +148,14 @@ public class RoadController : MonoBehaviour
             currentNode = currentNode.Next;
         } while (currentNode != null && currentNode.Value.Color == firstBallInChain.Value.Color);
 
-        if (ballsInChain.Count < 4) return;
+        if (ballsInChain.Count < 3) return;
 
         // увеличить счет за количество шаров в цепочке
 
         for (int i = ballsInChain.Count - 1; i >= 0; i--)
         {
             BallController ball = ballsInChain[i];
+            _ballsOnRoad.Remove(ball);
             Destroy(ball.gameObject);
         }
 

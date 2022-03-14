@@ -56,7 +56,7 @@ public class BallController : MonoBehaviour
         {
             if (_pathPoints == null) return;
 
-            transform.position = Vector3.MoveTowards(transform.position, _pathPoints[NextPoint].position, Time.deltaTime * _speed);
+            transform.position = Vector3.MoveTowards(transform.position, _pathPoints[NextPoint].position, Time.deltaTime * _speed * _currentVelocity);
 
             var distanceSquare = (transform.position - _pathPoints[NextPoint].position).sqrMagnitude;
 
@@ -72,11 +72,11 @@ public class BallController : MonoBehaviour
             {
                 if (MovingTo == Direction.Down) //  down
                 {
-                    _body2D.constraints = RigidbodyConstraints2D.FreezePositionY;
+                    _body2D.constraints = RigidbodyConstraints2D.FreezePositionX;
                 }
                 else //not down
                 {
-                    _body2D.constraints = RigidbodyConstraints2D.FreezePositionX;
+                    _body2D.constraints = RigidbodyConstraints2D.FreezePositionY;
                 }
             }
             else
@@ -86,7 +86,11 @@ public class BallController : MonoBehaviour
         }
     }
 
-    private void OnCollisionEnter2D(Collision2D collision)
+    private const float _maxVelocity = 4f;
+    private float _currentVelocity = 1.5f;
+    [SerializeField]
+    public BallController NextToMe;
+    private void OnCollisionStay2D(Collision2D collision)
     {
         if (_state != BallState.Road) return;
 
@@ -97,16 +101,30 @@ public class BallController : MonoBehaviour
             OnMovingBallCollision?.Invoke(this, collisionBall);
 
         if (collisionBall._state == BallState.Road)
-            OnRoadBallCollision?.Invoke(this, collisionBall);
+        {
+            if (collisionBall == NextToMe)
+                _currentVelocity = _maxVelocity;
+        }
+    }
+
+    private void OnCollisionExit2D(Collision2D collision)
+    {
+        var collisionBall = collision.gameObject.GetComponent<BallController>();
+        if (collisionBall == null) return;
+
+        if (collisionBall == NextToMe || NextToMe == null)
+            _currentVelocity = 1f;
     }
 
     public Direction MovingTo
     {
         get
         {
-            if (_pathPoints[NextPoint].position.y != _pathPoints[NextPoint + 1].position.y)
+            if (NextPoint == 0)
+                return Direction.Left;
+            if (_pathPoints[NextPoint - 1].position.y != _pathPoints[NextPoint].position.y)
                 return Direction.Down;
-            if (_pathPoints[NextPoint].position.x < _pathPoints[NextPoint + 1].position.x)
+            if (_pathPoints[NextPoint - 1].position.x > _pathPoints[NextPoint].position.x)
                 return Direction.Left;
             return Direction.Right;
         }
@@ -144,5 +162,11 @@ public class BallController : MonoBehaviour
             default:
                 break;
         }
-    } 
+    }
+
+    public void SetNext(BallController ball)
+    {
+        NextToMe=ball;
+        _currentVelocity = 1f;
+    }
 }

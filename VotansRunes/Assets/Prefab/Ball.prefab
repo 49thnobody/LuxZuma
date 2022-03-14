@@ -130,6 +130,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   Color: 0
   NextPoint: 0
+  NextToMe: {fileID: 0}
 --- !u!58 &3112076334738879813
 CircleCollider2D:
   m_ObjectHideFlags: 0
