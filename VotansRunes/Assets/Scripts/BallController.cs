@@ -72,10 +72,14 @@ public class BallController : MonoBehaviour
             {
                 if (MovingTo == Direction.Down) //  down
                 {
+                    if (transform.position.x != _pathPoints[NextPoint].position.x)
+                        transform.position = new Vector3(_pathPoints[NextPoint].position.x, transform.position.y, 0f);
                     _body2D.constraints = RigidbodyConstraints2D.FreezePositionX;
                 }
                 else //not down
                 {
+                    if (transform.position.y != _pathPoints[NextPoint].position.y)
+                        transform.position = new Vector3(transform.position.x, _pathPoints[NextPoint].position.y, 0f);
                     _body2D.constraints = RigidbodyConstraints2D.FreezePositionY;
                 }
             }
@@ -166,7 +170,7 @@ public class BallController : MonoBehaviour
 
     public void SetNext(BallController ball)
     {
-        NextToMe=ball;
+        NextToMe = ball;
         _currentVelocity = 1f;
     }
 }

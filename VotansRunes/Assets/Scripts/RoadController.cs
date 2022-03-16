@@ -13,8 +13,20 @@ public class RoadController : MonoBehaviour
     }
 
     private LinkedList<BallController> _ballsOnRoad;
+    public List<BallController> _ballsForInspector
+    {
+        get
+        {
+            List<BallController> result = new List<BallController>();
 
-    private float _ballSize = 0.7f;
+            foreach (BallController ball in _ballsOnRoad)
+            {
+                result.Add(ball);
+            }
+
+            return result;
+        }
+    }
 
     private PathContoller _path;
 
@@ -63,46 +75,47 @@ public class RoadController : MonoBehaviour
         var rbPos = roadBall.transform.position;
         var mbPos = movingBall.transform.position;
 
-        var prevPos = ballInList.Previous == null ? ballInList.Value.transform.position : ballInList.Previous.Value.transform.position;
-        var nextPos = ballInList.Next == null ? ballInList.Value.transform.position : ballInList.Next.Value.transform.position;
-
-        var prevDistanceSquare = (prevPos - mbPos).sqrMagnitude;
-        var nextDistanceSquare = (nextPos - mbPos).sqrMagnitude;
-
-        movingBall.transform.SetParent(roadBall.transform.parent);
-
         Vector3 newPos = movingBall.transform.position;
-        // близжайший нод - предыдущий тому, в которого врезались
-        if (prevDistanceSquare < nextDistanceSquare)
+        movingBall.transform.SetParent(roadBall.transform.parent);
+        if (roadBall.MovingTo == Direction.Down)
         {
-            newPos = new Vector3(prevPos.x, rbPos.y, 0f);
-
-            // ooooo
-            // 01234  
-            if (roadBall.MovingTo == Direction.Left)
-            {
-                _ballsOnRoad.AddBefore(ballInList, movingBall);
-            }
-            // ooooo
-            // 43210  
-            else if (roadBall.MovingTo == Direction.Right)
-            {
-                _ballsOnRoad.AddAfter(ballInList, movingBall);
-            }
+            newPos = new Vector3(rbPos.x, rbPos.y - 0.3f, 0f);
+            _ballsOnRoad.AddBefore(ballInList, movingBall);
         }
-        // близжайший нод - следующий после того, в которого врезались
         else
         {
-            newPos = new Vector3(nextPos.x, rbPos.y, 0f);
+            var prevPos = ballInList.Previous == null ? ballInList.Value.transform.position : ballInList.Previous.Value.transform.position;
+            var nextPos = ballInList.Next == null ? ballInList.Value.transform.position : ballInList.Next.Value.transform.position;
 
-            // ooooo
-            // 01234  
+            var prevDistanceSquare = (prevPos - mbPos).sqrMagnitude;
+            var nextDistanceSquare = (nextPos - mbPos).sqrMagnitude;
+
             if (roadBall.MovingTo == Direction.Left)
-                _ballsOnRoad.AddAfter(ballInList, movingBall);
-            // ooooo
-            // 43210  
-            else if (roadBall.MovingTo == Direction.Right)
-                _ballsOnRoad.AddBefore(ballInList, movingBall);
+            {
+                if (prevDistanceSquare < nextDistanceSquare)
+                {
+                    newPos = new Vector3(prevPos.x + 0.2f, rbPos.y, 0f);
+                    _ballsOnRoad.AddBefore(ballInList, movingBall);
+                }
+                else
+                {
+                    newPos = new Vector3(nextPos.x - 0.2f, rbPos.y, 0f);
+                    _ballsOnRoad.AddAfter(ballInList, movingBall);
+                }
+            }
+            else
+            {
+                if (prevDistanceSquare < nextDistanceSquare)
+                {
+                    newPos = new Vector3(prevPos.x - 0.2f, rbPos.y, 0f);
+                    _ballsOnRoad.AddBefore(ballInList, movingBall);
+                }
+                else
+                {
+                    newPos = new Vector3(nextPos.x + 0.2f, rbPos.y, 0f);
+                    _ballsOnRoad.AddAfter(ballInList, movingBall);
+                }
+            }
         }
 
         var mbInList = _ballsOnRoad.Find(movingBall);
@@ -111,13 +124,13 @@ public class RoadController : MonoBehaviour
         mbInList.Value.OnMovingBallCollision += OnMovingBallCollision;
         mbInList.Value.NextPoint = roadBall.NextPoint;
 
-        ResetNExtToMe();
+        ResetNextToMe();
 
         // чек если рядом есть 3 шарика одного цвета
         CheckForMatches(mbInList);
     }
 
-    private void ResetNExtToMe()
+    private void ResetNextToMe()
     {
         var currentNode = _ballsOnRoad.First;
         while (currentNode.Next != null)
@@ -150,7 +163,8 @@ public class RoadController : MonoBehaviour
 
         if (ballsInChain.Count < 3) return;
 
-        // увеличить счет за количество шаров в цепочке
+        var prevBall = _ballsOnRoad.Find(ballsInChain[0]).Previous;
+        var nextBall = _ballsOnRoad.Find(ballsInChain[ballsInChain.Count - 1]).Next;
 
         for (int i = ballsInChain.Count - 1; i >= 0; i--)
         {
@@ -160,5 +174,7 @@ public class RoadController : MonoBehaviour
         }
 
         // убрать дыру между шарами
+
+
     }
 }
