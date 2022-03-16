@@ -172,9 +172,14 @@ public class RoadController : MonoBehaviour
             _ballsOnRoad.Remove(ball);
             Destroy(ball.gameObject);
         }
-
         // убрать дыру между шарами
+        RemoveGap(prevBall, nextBall);
 
+        CheckForMatches(nextBall ?? prevBall);
+    }
 
+    private void RemoveGap(LinkedListNode<BallController> prevBall, LinkedListNode<BallController> nextBall)
+    {
+        throw new System.NotImplementedException();
     }
 }
