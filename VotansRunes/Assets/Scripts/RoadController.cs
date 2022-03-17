@@ -13,20 +13,6 @@ public class RoadController : MonoBehaviour
     }
 
     private LinkedList<BallController> _ballsOnRoad;
-    public List<BallController> _ballsForInspector
-    {
-        get
-        {
-            List<BallController> result = new List<BallController>();
-
-            foreach (BallController ball in _ballsOnRoad)
-            {
-                result.Add(ball);
-            }
-
-            return result;
-        }
-    }
 
     private PathContoller _path;
 
@@ -172,14 +158,28 @@ public class RoadController : MonoBehaviour
             _ballsOnRoad.Remove(ball);
             Destroy(ball.gameObject);
         }
+
+        if (_ballsOnRoad.Count == 0)
+            return; // win
+
+        ResetNextToMe();
+
         // убрать дыру между шарами
-        RemoveGap(prevBall, nextBall);
+        StartCoroutine(RemoveGap(prevBall, nextBall));
 
         CheckForMatches(nextBall ?? prevBall);
     }
 
-    private void RemoveGap(LinkedListNode<BallController> prevBall, LinkedListNode<BallController> nextBall)
+    private IEnumerator RemoveGap(LinkedListNode<BallController> prevBall, LinkedListNode<BallController> nextBall)
     {
-        throw new System.NotImplementedException();
+        if (nextBall == null) yield break;
+
+        var currentNode = prevBall;
+        while (currentNode != null && currentNode.Next != null)
+        {
+            currentNode.Value.MoveBack(currentNode.Next.Value);
+            currentNode = currentNode.Previous;
+            yield return new WaitForSeconds(0.1f);
+        }
     }
 }
