@@ -20,6 +20,11 @@ public class BallSpawner : MonoBehaviour
         return SpawnOnPlace(PlatformPosition, BallState.Active);
     }
 
+    public BallController SpawnOnPlatform(Color color)
+    {
+        return SpawnOnPlace(PlatformPosition, BallState.Active, color);
+    }
+
     public void SpawnMoving(BallController template)
     {
         var movingBall = Instantiate(BallPrefab);
@@ -39,6 +44,19 @@ public class BallSpawner : MonoBehaviour
         var newBall = Instantiate(BallPrefab, parent);
         int color = Random.Range(0, BallSprites.Count - 1);
         newBall.Set((Color)color, BallSprites[color]);
+        newBall.SetState(ballState);
+        return newBall;
+    }
+
+    private BallController SpawnOnPlace(Transform parent, BallState ballState, Color color)
+    {
+        var newBall = Instantiate(BallPrefab, parent);
+        int newColor = Random.Range(0, BallSprites.Count - 1);
+        while (newColor==(int)color)
+        {
+            newColor = Random.Range(0, BallSprites.Count - 1);
+        }
+        newBall.Set((Color)newColor, BallSprites[newColor]);
         newBall.SetState(ballState);
         return newBall;
     }

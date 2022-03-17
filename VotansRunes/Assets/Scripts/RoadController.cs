@@ -44,6 +44,14 @@ public class RoadController : MonoBehaviour
 
             yield return new WaitForSeconds(0.1f);
         }
+
+        while (GameManager.instance.GameState == GameState.Play)
+        {
+            _ballsOnRoad.AddLast(BallSpawner.instance.SpawnOnRoad());
+            _ballsOnRoad.Last.Value.OnMovingBallCollision += OnMovingBallCollision;
+
+            yield return new WaitForSeconds(2f);
+        }
     }
 
     private void OnMovingBallCollision(BallController roadBall, BallController movingBall)

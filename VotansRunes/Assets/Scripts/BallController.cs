@@ -56,24 +56,31 @@ public class BallController : MonoBehaviour
         if (_state == BallState.Road)
         {
             if (_pathPoints == null) return;
-
+            float distanceSquare;
             if (movingBack)
             {
                 transform.position = Vector3.MoveTowards(transform.position, _pathPoints[NextPoint - 1].position, Time.deltaTime * _speed * _currentVelocity);
+                distanceSquare = (transform.position - _pathPoints[NextPoint - 1].position).sqrMagnitude;
+                if (distanceSquare < 0.1f * 0.1f)
+                {
+                    NextPoint--;
+                }
             }
             else
             {
                 transform.position = Vector3.MoveTowards(transform.position, _pathPoints[NextPoint].position, Time.deltaTime * _speed * _currentVelocity);
-            }
+                distanceSquare = (transform.position - _pathPoints[NextPoint].position).sqrMagnitude;
 
-            var distanceSquare = (transform.position - _pathPoints[NextPoint].position).sqrMagnitude;
+                if (distanceSquare < 0.1f * 0.1f)
+                {
+                    if (NextPoint == _pathPoints.Count - 1)
+                    {
+                        GameManager.instance.TakeDamage();
+                        DestroyImmediate(gameObject);
+                    }
 
-            if (distanceSquare < 0.1f * 0.1f)
-            {
-                if (NextPoint == _pathPoints.Count - 1)
-                    return; // actually lost
-
-                NextPoint++;
+                    NextPoint++;
+                }
             }
 
             if (NextPoint < _pathPoints.Count - 1)
@@ -146,13 +153,26 @@ public class BallController : MonoBehaviour
     {
         get
         {
-            if (NextPoint == 0)
-                return Direction.Left;
-            if (_pathPoints[NextPoint - 1].position.y != _pathPoints[NextPoint].position.y)
-                return Direction.Down;
-            if (_pathPoints[NextPoint - 1].position.x > _pathPoints[NextPoint].position.x)
-                return Direction.Left;
-            return Direction.Right;
+            if (!movingBack)
+            {
+                if (NextPoint == 0)
+                    return Direction.Left;
+                if (_pathPoints[NextPoint - 1].position.y != _pathPoints[NextPoint].position.y)
+                    return Direction.Down;
+                if (_pathPoints[NextPoint - 1].position.x > _pathPoints[NextPoint].position.x)
+                    return Direction.Left;
+                return Direction.Right;
+            }
+            else
+            {
+                if (NextPoint == 0)
+                    return Direction.Left;
+                if (_pathPoints[NextPoint + 1].position.y != _pathPoints[NextPoint].position.y)
+                    return Direction.Down;
+                if (_pathPoints[NextPoint + 1].position.x > _pathPoints[NextPoint].position.x)
+                    return Direction.Left;
+                return Direction.Right;
+            }
         }
     }
 

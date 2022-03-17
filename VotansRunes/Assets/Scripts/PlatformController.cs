@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -27,10 +28,12 @@ public class PlatformController : MonoBehaviour
         if (Input.GetKey(KeyCode.LeftArrow))
         {
             pos.x -= _speed * Time.deltaTime;
+            if (pos.x < -8) pos.x = -8;
         }
         if (Input.GetKey(KeyCode.RightArrow))
         {
             pos.x += _speed * Time.deltaTime;
+            if (pos.x > 8) pos.x = 8;
         }
 
         transform.position = pos;
@@ -39,6 +42,18 @@ public class PlatformController : MonoBehaviour
         {
             PushBall();
         }
+
+        if (Input.GetKeyDown(KeyCode.DownArrow))
+        {
+            ChangeBall();
+        }
+    }
+
+    private void ChangeBall()
+    {
+        DestroyImmediate(_activeBall.gameObject);
+        // заспавнить новый
+        _activeBall = BallSpawner.instance.SpawnOnPlatform(_activeBall.Color);
     }
 
     private void PushBall()
