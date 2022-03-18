@@ -21,7 +21,21 @@ public class RoadController : MonoBehaviour
         _path = GetComponent<PathContoller>();
         _ballsOnRoad = new LinkedList<BallController>();
 
+        if (GameManager.instance.GameState != GameState.Play) return;
+
         StartCoroutine(SpawnBalls());
+    }
+
+    public void Restart()
+    {
+        StartCoroutine(SpawnBalls());
+
+        StartCoroutine(SpawningBalls());
+    }
+
+    public void Continue()
+    {
+        StartCoroutine(SpawningBalls());
     }
 
     private IEnumerator SpawnBalls()
@@ -29,26 +43,39 @@ public class RoadController : MonoBehaviour
         for (int i = 0; i < 25; i++)
         {
             _ballsOnRoad.AddLast(BallSpawner.instance.SpawnOnRoad());
-            _ballsOnRoad.Last.Value.OnMovingBallCollision += OnMovingBallCollision;
-            if (_ballsOnRoad.Last.Previous != null)
+            var currentNode = _ballsOnRoad.Last;
+            while (currentNode.Previous != null)
             {
-                _ballsOnRoad.Last.Previous.Value.SetNext(_ballsOnRoad.Last.Value);
-                var currentNode = _ballsOnRoad.Last;
-                while (currentNode.Previous != null)
-                {
-                    currentNode.Previous.Value.transform.position += new Vector3(-0.2f, 0, 0);
-                    currentNode = currentNode.Previous;
-                }
+                currentNode.Previous.Value.transform.position += new Vector3(-0.2f, 0, 0);
+                currentNode = currentNode.Previous;
             }
-
 
             yield return new WaitForSeconds(0.1f);
         }
 
+        SetBalls();
+    }
+
+    private void SetBalls()
+    {
+        var currentNode = _ballsOnRoad.First;
+
+        while (currentNode != null)
+        {
+            currentNode.Value.SetNode(currentNode);
+            currentNode.Value.OnMovingBallCollision += OnMovingBallCollision;
+            currentNode = currentNode.Next;
+        }
+    }
+
+    private IEnumerator SpawningBalls()
+    {
         while (GameManager.instance.GameState == GameState.Play)
         {
             _ballsOnRoad.AddLast(BallSpawner.instance.SpawnOnRoad());
             _ballsOnRoad.Last.Value.OnMovingBallCollision += OnMovingBallCollision;
+            _ballsOnRoad.Last.Value.SetNode(_ballsOnRoad.Last);
+            _ballsOnRoad.Last.Value.ChaseBall();
 
             yield return new WaitForSeconds(2f);
         }
@@ -71,7 +98,7 @@ public class RoadController : MonoBehaviour
 
         Vector3 newPos = movingBall.transform.position;
         movingBall.transform.SetParent(roadBall.transform.parent);
-        if (roadBall.MovingTo == Direction.Down)
+        if (roadBall.MovingTo == Direction.Down || roadBall.MovingTo == Direction.Up)
         {
             newPos = new Vector3(rbPos.x, rbPos.y - 0.3f, 0f);
             _ballsOnRoad.AddBefore(ballInList, movingBall);
@@ -113,27 +140,29 @@ public class RoadController : MonoBehaviour
         }
 
         var mbInList = _ballsOnRoad.Find(movingBall);
+        mbInList.Value.SetNode(mbInList);
         mbInList.Value.transform.position = newPos;
         mbInList.Value.SetState(BallState.Road);
         mbInList.Value.OnMovingBallCollision += OnMovingBallCollision;
         mbInList.Value.NextPoint = roadBall.NextPoint;
 
-        ResetNextToMe();
-
         // чек если рядом есть 3 шарика одного цвета
         CheckForMatches(mbInList);
     }
 
-    private void ResetNextToMe()
+    private void ResetNodes()
     {
         var currentNode = _ballsOnRoad.First;
-        while (currentNode.Next != null)
+
+        while (currentNode != null)
         {
-            currentNode.Value.SetNext(currentNode.Next.Value);
+            currentNode.Value.SetNode(currentNode);
             currentNode = currentNode.Next;
         }
     }
 
+    private int strike = 1;
+    private float modif = 0.2f;
     private void CheckForMatches(LinkedListNode<BallController> movingBall)
     {
         if (movingBall == null) return;
@@ -155,7 +184,15 @@ public class RoadController : MonoBehaviour
             currentNode = currentNode.Next;
         } while (currentNode != null && currentNode.Value.Color == firstBallInChain.Value.Color);
 
-        if (ballsInChain.Count < 3) return;
+        if (ballsInChain.Count < 3)
+        {
+            strike = 1;
+            return;
+        }
+        else
+        {
+            GameManager.instance.AddScore(100 * ballsInChain.Count);
+        }
 
         var prevBall = _ballsOnRoad.Find(ballsInChain[0]).Previous;
         var nextBall = _ballsOnRoad.Find(ballsInChain[ballsInChain.Count - 1]).Next;
@@ -170,8 +207,6 @@ public class RoadController : MonoBehaviour
         if (_ballsOnRoad.Count == 0)
             return; // win
 
-        ResetNextToMe();
-
         // убрать дыру между шарами
         StartCoroutine(RemoveGap(prevBall, nextBall));
 
@@ -185,9 +220,18 @@ public class RoadController : MonoBehaviour
         var currentNode = prevBall;
         while (currentNode != null && currentNode.Next != null)
         {
-            currentNode.Value.MoveBack(currentNode.Next.Value);
+            currentNode.Value.MoveBack();
             currentNode = currentNode.Previous;
             yield return new WaitForSeconds(0.1f);
+        }
+    }
+
+    private void Update()
+    {
+        if (Input.GetKeyDown(KeyCode.Space))
+        {
+            StopAllCoroutines();
+            GameManager.instance.Pause();
         }
     }
 }

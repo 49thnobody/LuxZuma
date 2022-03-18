@@ -23,6 +23,8 @@ public class PlatformController : MonoBehaviour
 
     void Update()
     {
+        if (GameManager.instance.GameState != GameState.Play) return;
+
         Vector3 pos = transform.position;
 
         if (Input.GetKey(KeyCode.LeftArrow))

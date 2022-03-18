@@ -45,6 +45,8 @@ public class BallController : MonoBehaviour
 
     private void Update()
     {
+        if (GameManager.instance.GameState != GameState.Play) return;
+
         if (_state == BallState.Moving)
         {
             Vector3 pos = transform.position;
@@ -57,26 +59,26 @@ public class BallController : MonoBehaviour
         {
             if (_pathPoints == null) return;
             float distanceSquare;
+
+            transform.position = Vector3.MoveTowards(transform.position, _pathPoints[NextPoint].position, Time.deltaTime * _speed * _currentVelocity);
+            distanceSquare = (transform.position - _pathPoints[NextPoint].position).sqrMagnitude;
             if (movingBack)
             {
-                transform.position = Vector3.MoveTowards(transform.position, _pathPoints[NextPoint - 1].position, Time.deltaTime * _speed * _currentVelocity);
-                distanceSquare = (transform.position - _pathPoints[NextPoint - 1].position).sqrMagnitude;
                 if (distanceSquare < 0.1f * 0.1f)
                 {
                     NextPoint--;
+                    if (NextPoint < 0) NextPoint = 0;
                 }
             }
             else
             {
-                transform.position = Vector3.MoveTowards(transform.position, _pathPoints[NextPoint].position, Time.deltaTime * _speed * _currentVelocity);
-                distanceSquare = (transform.position - _pathPoints[NextPoint].position).sqrMagnitude;
-
                 if (distanceSquare < 0.1f * 0.1f)
                 {
                     if (NextPoint == _pathPoints.Count - 1)
                     {
                         GameManager.instance.TakeDamage();
                         DestroyImmediate(gameObject);
+                        return;
                     }
 
                     NextPoint++;
@@ -85,7 +87,7 @@ public class BallController : MonoBehaviour
 
             if (NextPoint < _pathPoints.Count - 1)
             {
-                if (MovingTo == Direction.Down) //  down
+                if (MovingTo == Direction.Down || MovingTo == Direction.Up) //  down
                 {
                     if (transform.position.x != _pathPoints[NextPoint].position.x)
                         transform.position = new Vector3(_pathPoints[NextPoint].position.x, transform.position.y, 0f);
@@ -106,22 +108,7 @@ public class BallController : MonoBehaviour
     }
 
     private float _currentVelocity = 1.5f;
-    [SerializeField]
-    public BallController NextToMe;
-
-    private void OnCollisionEnter2D(Collision2D collision)
-    {
-        if (_state != BallState.Road) return;
-
-        var collisionBall = collision.gameObject.GetComponent<BallController>();
-        if (collisionBall == null) return;
-
-        if (collisionBall == NextToMe && movingBack)
-        {
-            movingBack = false;
-            _currentVelocity = 1f;
-        }
-    }
+    public LinkedListNode<BallController> MyNode;
 
     private void OnCollisionStay2D(Collision2D collision)
     {
@@ -135,8 +122,25 @@ public class BallController : MonoBehaviour
 
         if (collisionBall._state == BallState.Road)
         {
-            if (collisionBall == NextToMe)
-                _currentVelocity = 4f;
+            if (MyNode != null && MyNode.Next != null && collisionBall == MyNode.Next.Value)
+            {
+                if (movingBack)
+                {
+                    _currentVelocity = 1f;
+                    movingBack = false;
+                    NextPoint++;
+                }
+                else
+                    _currentVelocity = 4f;
+            }
+            else if (isChasing)
+            {
+                if (MyNode != null && MyNode.Next != null && collisionBall == MyNode.Previous.Value)
+                {
+                    _currentVelocity = 1f;
+                    isChasing = false;
+                }
+            }
         }
     }
 
@@ -145,7 +149,7 @@ public class BallController : MonoBehaviour
         var collisionBall = collision.gameObject.GetComponent<BallController>();
         if (collisionBall == null) return;
 
-        if (collisionBall == NextToMe || NextToMe == null)
+        if (MyNode != null && MyNode.Next != null && collisionBall == MyNode.Next.Value)
             _currentVelocity = 1f;
     }
 
@@ -153,34 +157,43 @@ public class BallController : MonoBehaviour
     {
         get
         {
-            if (!movingBack)
+            Vector3 startPoint;
+            Vector3 endPoint;
+            if (movingBack)
             {
-                if (NextPoint == 0)
-                    return Direction.Left;
-                if (_pathPoints[NextPoint - 1].position.y != _pathPoints[NextPoint].position.y)
-                    return Direction.Down;
-                if (_pathPoints[NextPoint - 1].position.x > _pathPoints[NextPoint].position.x)
-                    return Direction.Left;
-                return Direction.Right;
+                if (NextPoint + 1 >= _pathPoints.Count) return Direction.Right; // shouldn happen
+                startPoint = _pathPoints[NextPoint + 1].position;
+                endPoint = _pathPoints[NextPoint].position;
             }
             else
             {
-                if (NextPoint == 0)
-                    return Direction.Left;
-                if (_pathPoints[NextPoint + 1].position.y != _pathPoints[NextPoint].position.y)
-                    return Direction.Down;
-                if (_pathPoints[NextPoint + 1].position.x > _pathPoints[NextPoint].position.x)
-                    return Direction.Left;
-                return Direction.Right;
+                if (NextPoint - 1 <= 0) return Direction.Left; // shouldn happen
+                startPoint = _pathPoints[NextPoint - 1].position;
+                endPoint = _pathPoints[NextPoint].position;
             }
+
+            if (startPoint.y > endPoint.y) return Direction.Down;
+            if (startPoint.y < endPoint.y) return Direction.Up;
+            if (startPoint.x > endPoint.x) return Direction.Left;
+            if (startPoint.x < endPoint.x) return Direction.Right;
+
+            return Direction.Left; // shouldn happen
         }
     }
 
-    public void MoveBack(BallController ball)
+    public void MoveBack()
     {
-        var ballNextPath = ball.NextPoint;
+        NextPoint--;
+        if (NextPoint < 0) NextPoint = 0;
         movingBack = true;
         _currentVelocity = 4f;
+    }
+
+    bool isChasing = false;
+    public void ChaseBall()
+    {
+        _currentVelocity = 2f;
+        isChasing = true;
     }
 
     public void Set(Color color, Sprite sprite)
@@ -217,9 +230,9 @@ public class BallController : MonoBehaviour
         }
     }
 
-    public void SetNext(BallController ball)
+    public void SetNode(LinkedListNode<BallController> node)
     {
-        NextToMe = ball;
+        MyNode = node;
         _currentVelocity = 1f;
     }
 }
