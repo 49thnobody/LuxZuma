@@ -19,7 +19,7 @@ public class HeartsController : MonoBehaviour
     }
 
     private int _currentHP;
-    private int _maxHP;
+    private const int _maxHP = 3;
 
     public SpriteRenderer[] Hearts;
     public Sprite FullHeart;

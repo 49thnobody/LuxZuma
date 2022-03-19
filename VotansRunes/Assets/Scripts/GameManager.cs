@@ -25,7 +25,6 @@ public class GameManager : MonoBehaviour
 
     private void Start()
     {
-        Hearts.Restart();
         ToMenu();
     }
 
@@ -34,6 +33,7 @@ public class GameManager : MonoBehaviour
         if (Hearts.TakeDamage())
         {
             GameState = GameState.GameOver;
+            Score.enabled = false;
             GameOverPanel.gameObject.SetActive(true);
             GameOverPanel.ShowScore(_score);
         }
@@ -48,6 +48,7 @@ public class GameManager : MonoBehaviour
     public void Pause()
     {
         GameState = GameState.Pause;
+        Score.enabled = false;
         PausePanel.gameObject.SetActive(true);
     }
 
@@ -59,6 +60,8 @@ public class GameManager : MonoBehaviour
 
     public void Play()
     {
+        Hearts.Restart();
+        Score.enabled = true;
         GameState = GameState.Play;
         _score = 0;
         Score.text = _score.ToString();
@@ -69,6 +72,7 @@ public class GameManager : MonoBehaviour
 
     public void Continue()
     {
+        Score.enabled = true;
         GameState = GameState.Play;
         RoadController.instance.Continue();
     }
