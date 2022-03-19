@@ -16,6 +16,8 @@ public class BallController : MonoBehaviour
     public delegate void BallCollision(BallController ballOnRoad, BallController otherBall);
     public event BallCollision OnMovingBallCollision;
     public event BallCollision OnRoadBallCollision;
+    public delegate void BallDestroy(BallController ball);  
+    public event BallDestroy OnBallDestroy;
 
     private PathContoller Path;
 
@@ -77,7 +79,8 @@ public class BallController : MonoBehaviour
                     if (NextPoint == _pathPoints.Count - 1)
                     {
                         GameManager.instance.TakeDamage();
-                        DestroyImmediate(gameObject);
+
+                        OnBallDestroy(this);
                         return;
                     }
 
@@ -104,6 +107,9 @@ public class BallController : MonoBehaviour
             {
                 _body2D.constraints = RigidbodyConstraints2D.FreezePositionY;
             }
+
+            if (MyNode.Previous == null)
+                _currentVelocity = 1f;
         }
     }
 
@@ -192,7 +198,7 @@ public class BallController : MonoBehaviour
     bool isChasing = false;
     public void ChaseBall()
     {
-        _currentVelocity = 2f;
+        _currentVelocity = 4f;
         isChasing = true;
     }
 
